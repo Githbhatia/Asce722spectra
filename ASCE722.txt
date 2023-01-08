@@ -1,0 +1,67 @@
+Data source is USGS (NEHRP 2020 Database) and OpenStreetMaps.
+Authors do not assume any responsibility or liability for its accuracy.
+Use of the output of this program does not imply approval by the governing building code bodies responsible for building code approval and interpretation for the building site described by latitude/longitude location.
+Written by HXB
+ 
+ 
+My Site
+804, Escalon Bellota Road, Farmington, San Joaquin County, California, 95236, United States
+The location is 38, -121 with Site Class CD and Risk Category IV
+pgam, 0.29
+sms, 0.78
+sm1, 0.44
+sds, 0.52
+sd1, 0.3
+sdc, D
+ss, 0.59
+s1, 0.22
+ts, 0.571
+t0, 0.114
+tl, 12
+cv, None
+MultiPeriodDesignSpectrum
+0, 0.23
+0.01, 0.23
+0.02, 0.23
+0.03, 0.24
+0.05, 0.29
+0.075, 0.37
+0.1, 0.44
+0.15, 0.53
+0.2, 0.56
+0.25, 0.57
+0.3, 0.57
+0.4, 0.53
+0.5, 0.49
+0.75, 0.38
+1, 0.3
+1.5, 0.2
+2, 0.15
+3, 0.098
+4, 0.073
+5, 0.058
+7.5, 0.042
+10, 0.033
+MultiPeriodMCErSpectrum
+0, 0.34
+0.01, 0.34
+0.02, 0.34
+0.03, 0.36
+0.05, 0.43
+0.075, 0.55
+0.1, 0.66
+0.15, 0.79
+0.2, 0.85
+0.25, 0.86
+0.3, 0.85
+0.4, 0.8
+0.5, 0.74
+0.75, 0.57
+1, 0.44
+1.5, 0.3
+2, 0.22
+3, 0.15
+4, 0.11
+5, 0.088
+7.5, 0.064
+10, 0.05
