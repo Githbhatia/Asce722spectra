@@ -138,7 +138,7 @@ class Root(Tk):
         #print(location.address)
         #print((location.latitude, location.longitude))
 
-        url = 'https://earthquake.usgs.gov/ws/designmaps/nehrp-2020.json?latitude='+ lat + '&longitude=' + longt +'&riskCategory='+ riskct +'&siteClass=' + sitecl + '&title=Example'
+        url = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ lat + '&longitude=' + longt +'&riskCategory='+ riskct +'&siteClass=' + sitecl + '&title=Example'
 
 
         try:
