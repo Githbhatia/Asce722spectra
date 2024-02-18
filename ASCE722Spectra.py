@@ -15,7 +15,8 @@ import webbrowser
 class Root(Tk):
     def __init__(self):
         super().__init__()
-        self.geometry('370x320')
+        global rr
+        self.geometry('370x340')
         self.title("ASCE 7-22 Seismic Parameters")
         
         self.menubar = Menu()
@@ -25,66 +26,73 @@ class Root(Tk):
         self.help.add_command(label="About", command=self.about)  
         self.menubar.add_cascade(label="Help", menu=self.help)
         
+        rr=0
         self.config(menu =self.menubar)
         self.grid_columnconfigure(1, minsize=200)
-        self.title_label = Label(text="ASCE7-22 Seismic Parameter Input").grid(row=0,column=0, columnspan = 2,sticky="ew")
+        self.title_label = Label(text="ASCE7-22 Seismic Parameter Input").grid(row=rr,column=0, columnspan = 2,sticky="ew"); rr+=1
         
         
         self.label_Title = Label(text="Title").grid(row=1,column=0)
         self.entry_Title  = Entry()
-        self.entry_Title.grid(row=1,column=1,sticky="ew")
+        self.entry_Title.grid(row=rr,column=1,sticky="ew"); rr+=1
         self.entry_Title.insert(0,"My Site")
 
-        self.title_SWVel = Label(text="Either enter Shear Wave Velocity or pick Site Class").grid(row=2,column=0, columnspan = 2)
-        self.title_SWVel2 = Label(text="(Shear Wave Velocity will be used when entered)").grid(row=3,column=0, columnspan = 2)
-        self.label_SWVel = Label(text="Shear Wave Velocity (ft/s)").grid(row=4,column=0)
+        self.title_SWVel = Label(text="Either enter Shear Wave Velocity or pick Site Class").grid(row=rr,column=0, columnspan = 2); rr+=1
+        self.title_SWVel2 = Label(text="(Shear Wave Velocity will be used when entered)").grid(row=rr,column=0, columnspan = 2); rr+=1
+        self.label_SWVel = Label(text="Shear Wave Velocity (ft/s)").grid(row=rr,column=0)
         self.entry_SWVel  = Entry()
-        self.entry_SWVel.grid(row=4,column=1,sticky="ew")
+        self.entry_SWVel.grid(row=rr,column=1,sticky="ew"); rr+=1
         self.entry_SWVel.insert(0,"")
+
+        self.estSWVel=IntVar()
+        self.checkbutton_estSWVel=Checkbutton(self, text="Estimated Shear Wave Velocity?", variable=self.estSWVel)
+        self.checkbutton_estSWVel.grid(row=rr,column=0, columnspan = 2,sticky="ew"); rr+=1
 
         SiteClassList=["A","B","BC","C","CD","D","DE","E","F"]
         self.SelectedSiteClass=StringVar()
         self.SelectedSiteClass.set("CD")
-        self.label_SiteClass = Label(text="Site Class").grid(row=5,column=0)
+        self.label_SiteClass = Label(text="Site Class").grid(row=rr,column=0)
         self.list_SiteClass = OptionMenu(self, self.SelectedSiteClass,*SiteClassList)
-        self.list_SiteClass.grid(row=5,column=1,sticky="ew")
+        self.list_SiteClass.grid(row=rr,column=1,sticky="ew"); rr+=1
 
         RiskCategoryList=["I","II","III","IV"]
         self.SelectedRiskCategory =StringVar()
         self.SelectedRiskCategory.set("IV")
-        self.label_RiskCategory = Label(text="Risk Category").grid(row=6,column=0)
+        self.label_RiskCategory = Label(text="Risk Category").grid(row=rr,column=0)
         self.list_RiskCategory = OptionMenu(self,self.SelectedRiskCategory,*RiskCategoryList)
-        self.list_RiskCategory.grid(row=6,column=1,sticky="ew")
+        self.list_RiskCategory.grid(row=rr,column=1,sticky="ew"); rr+=1
 
-        self.title_label = Label(text="Either provide Address or Lat/Long Pair (leave Address blank)").grid(row=7,column=0, columnspan = 2)
+        self.title_label = Label(text="Either provide Address or Lat/Long Pair (leave Address blank)").grid(row=rr,column=0, columnspan = 2); rr+=1
 
-        self.label_Address = Label(text="Address").grid(row=8,column=0)
+        self.label_Address = Label(text="Address").grid(row=rr,column=0)
         self.entry_Address = Entry()
-        self.entry_Address.grid(row=8,column=1,sticky="ew")
+        self.entry_Address.grid(row=rr,column=1,sticky="ew"); rr+=1
         self.entry_Address.insert(0,"")
   
-        self.label_Latitude = Label(text="Latitude").grid(row=9,column=0)
+        self.label_Latitude = Label(text="Latitude").grid(row=rr,column=0)
         self.entry_Latitude = Entry()
-        self.entry_Latitude.grid(row=9,column=1,sticky="ew")
+        self.entry_Latitude.grid(row=rr,column=1,sticky="ew"); rr+=1
         self.entry_Latitude.insert(0,"38")
 
-        self.label_Longitude = Label(text="Longitude").grid(row=10,column=0)
+        self.label_Longitude = Label(text="Longitude").grid(row=rr,column=0)
         self.entry_Longitude  = Entry()
-        self.entry_Longitude.grid(row=10,column=1,sticky="ew")
+        self.entry_Longitude.grid(row=rr,column=1,sticky="ew"); rr+=1
         self.entry_Longitude.insert(0,"-121")
 
         self.SaveJson=IntVar()
         self.checkbutton_SaveJson=Checkbutton(self, text="Save Json", variable=self.SaveJson)
-        self.checkbutton_SaveJson.grid(row=11,column=0,sticky="ew")
+        self.checkbutton_SaveJson.grid(row=rr,column=0,sticky="ew")
 
         self.OpenMap=IntVar(value= 1)
         self.checkbutton_OpenMap=Checkbutton(self, text="Open Map", variable=self.OpenMap)
-        self.checkbutton_OpenMap.grid(row=11,column=1,sticky="ew")
+        self.checkbutton_OpenMap.grid(row=rr,column=1,sticky="ew"); rr+=1
 
-        self.button = Button( text="Compute", bg='white', height=2, width=20, command=self.onclick).grid(row=12,column=0)
+        self.button = Button( text="Compute", bg='white', height=2, width=20, command=self.onclick).grid(row=rr,column=0)
 
         
     def onclick(self):
+        global rr
+        rr=22
         if str(self.entry_SWVel.get()) != "":
             try:
                 shearwavevel = float(self.entry_SWVel.get())
@@ -100,6 +108,16 @@ class Root(Tk):
                 if shearwavevel <= b:
                     sitecl = a
                     break
+            if self.estSWVel.get()==1:
+                for a, b in shearwavevellimits:
+                    if shearwavevel/1.3 <= b:
+                        sitecll = a
+                        break
+                for a, b in shearwavevellimits:
+                    if shearwavevel*1.3 <= b:
+                        siteclu = a
+                        break     
+                #print(sitecll+" "+siteclu)
         else:
             sitecl = str(self.SelectedSiteClass.get())
         self.SelectedSiteClass.set(sitecl)
@@ -139,11 +157,16 @@ class Root(Tk):
         #print((location.latitude, location.longitude))
 
         url = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ lat + '&longitude=' + longt +'&riskCategory='+ riskct +'&siteClass=' + sitecl + '&title=Example'
-
+        if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+            urll = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ lat + '&longitude=' + longt +'&riskCategory='+ riskct +'&siteClass=' + sitecll + '&title=Example'
+            urlu = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ lat + '&longitude=' + longt +'&riskCategory='+ riskct +'&siteClass=' + siteclu + '&title=Example'
 
         try:
             response = ur.urlopen(url)
-        except URLError as e:
+            if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+                responsel = ur.urlopen(urll)
+                responseu = ur.urlopen(urlu)
+        except ur.URLError as e:
             if hasattr(e, 'reason'):
                 print('We failed to reach a server.')
                 print('Reason: ', e.reason)
@@ -153,11 +176,19 @@ class Root(Tk):
                 print('Error code: ', e.code)
                 return()
 
-        self.geometry('370x650')     
+        self.geometry('370x660')     
         rdata = js.loads(response.read())
+        if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+            rdatal = js.loads(responsel.read())
+            rdatau = js.loads(responseu.read())
         if self.SaveJson.get() == 1:
             with open("ASCE722.json", "w") as write_file:
                 js.dump(rdata, write_file)
+            if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+                with open("ASCE722_lowerbound.json", "w") as write_file:
+                    js.dump(rdatal, write_file)
+                with open("ASCE722_upperbound.json", "w") as write_file:
+                    js.dump(rdatau, write_file)
 
         output = 'Output for Latitude = ' + str(lat) + ' Longitude = ' + str(longt)
         t = rdata["response"]["data"]["multiPeriodDesignSpectrum"]["periods"]
@@ -171,36 +202,76 @@ class Root(Tk):
 
         tmce2 = rdata["response"]["data"]["twoPeriodMCErSpectrum"]["periods"]
         smce2 = rdata["response"]["data"]["twoPeriodMCErSpectrum"]["ordinates"]
-            
+
         fig = plt.figure(figsize=(20, 10))
         ax = fig.add_subplot(121)
         ax.set_xlabel('Period')
         ax.set_title(sitetitle + " Design Spectrum")
-        ax.plot(t, s, label="Multiperiod Design Spectrum", color='Red', linewidth=1.0)
-        ax.plot(t2, s2, label="2-Period Design Spectrum", color='Green', linewidth=1.0)
-        ax.set_xlim([0, 5])
-        ax.legend()
-
         ax2 = fig.add_subplot(122)
         ax2.set_xlabel('Period')
         ax2.set_title(sitetitle + " MCE Spectrum")
-        ax2.plot(tmce, smce, label="MCE Multiperiod Spectrum", color='Blue', linewidth=1.0)
-        ax2.plot(tmce2, smce2, label="MCE 2-Period  Spectrum", color='Green', linewidth=1.0)
-        ax2.set_xlim([0, 5])
-        ax2.legend()
-        
-        p = rdata["response"]["data"]
-        self.title_label = Label(text="ASCE7-22 Seismic Parameter Output").grid(row=14,column=0, columnspan = 2)
-        index = 0
-        for key, value in p.items():
-            if index <= 11:
-                Label(self, text=str(key), relief = "sunken", width= 20).grid(column=0, row=index+15)
-                Label(self, text=str(value), relief = "sunken", width = 20).grid(column=1, row=index+15)
-            index += 1
- 
 
-        self.button2 = Button(self, text="Quit", bg='red', height=2, width=20, command=lambda:self.onclick2(plt)).grid(row=28,column=1)
-        self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefile(rdata, plt, sitecl)).grid(row=28,column=0)
+        if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+            for label in self.grid_slaves():
+                if int(label.grid_info()["row"]) > 22:
+                    label.grid_forget()
+            sl = rdatal["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
+            su = rdatau["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
+            sg = [max(sl,s,su) for sl,s,su in zip(sl,s,su)]
+            ax.plot(t, sl, label="Multiperiod Des Spec lower bound SC="+ sitecll, color='Red', linewidth=1.0)
+            ax.plot(t, s, label="Multiperiod Des Spec SC=" + sitecl, color='Blue', linewidth=1.0)
+            ax.plot(t, su, label="Multiperiod Des Spec upper bound SC="+ siteclu, color='Green', linewidth=1.0)
+            ax.plot(t, sg, label="Govering Multiperiod Des Spec", color='Black', linestyle='--', linewidth=2.0)
+            ax.set_xlim([0, 5])
+            ax.legend()  
+            smcel = rdatal["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
+            smceu = rdatau["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
+            smceg = [max(smcel,smce,smceu) for smcel,smce,smceu in zip(smcel,smce,smceu)]
+            ax2.plot(tmce, smcel, label="MCE Multiperiod lower bound SC="+ sitecll, color='Red', linewidth=1.0)
+            ax2.plot(tmce, smce, label="MCE Multiperiod Spec SC=" + sitecl, color='Blue', linewidth=1.0)
+            ax2.plot(tmce, smceu, label="MCE Multiperiod upper bound SC="+ siteclu, color='Green', linewidth=1.0)
+            ax2.plot(tmce, smceg, label="Govering MCE Multiperiod", color='Black', linestyle='--', linewidth=2.0)
+            ax2.set_xlim([0, 5])
+            ax2.legend() 
+            rr+=1
+            self.title_label = Label(text="ASCE7-22 Seismic Parameter Output").grid(row=rr,column=0, columnspan = 2); rr+=1
+            self.title_label2 = Label(text="Based on estimated shear wave velocity").grid(row=rr,column=0, columnspan = 2); rr+=1
+            sds = 0.9 * max(sg)
+            sd1 = sg[t.index(1.0)]
+            Label(self, text=str("sds"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(sds,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            Label(self, text=str("sd1"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(sd1), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefileEstSV(t, sg, tmce, smceg, sds, sd1, plt, sitecl)).grid(row=rr,column=0)
+            
+
+        else:
+            for label in self.grid_slaves():
+                if int(label.grid_info()["row"]) > 22:
+                    label.grid_forget()
+            ax.plot(t, s, label="Multiperiod Design Spectrum", color='Red', linewidth=1.0)
+            ax.plot(t2, s2, label="2-Period Design Spectrum", color='Green', linewidth=1.0)
+            ax.set_xlim([0, 5])
+            ax.legend()
+            ax2.plot(tmce, smce, label="MCE Multiperiod Spectrum", color='Blue', linewidth=1.0)
+            ax2.plot(tmce2, smce2, label="MCE 2-Period  Spectrum", color='Green', linewidth=1.0)
+            ax2.set_xlim([0, 5])
+            ax2.legend()
+            p = rdata["response"]["data"]; rr+=1
+            self.title_label = Label(text="ASCE7-22 Seismic Parameter Output").grid(row=rr,column=0, columnspan = 2); rr+=1
+            index = 0
+            for key, value in p.items():
+                if index <= 11:
+                    Label(self, text=str(key), relief = "sunken", width= 20).grid(column=0, row=rr)
+                    Label(self, text=str(value), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+                index += 1
+            self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefile(rdata, plt, sitecl)).grid(row=rr,column=0)
+            
+  
+
+
+        self.button2 = Button(self, text="Quit", bg='red', height=2, width=20, command=lambda:self.onclick2(plt)).grid(row=rr,column=1)
+        
 
         if self.OpenMap.get()==1:
  #           map = folium.Map(location=[float(lat),float(longt)],zoom_start=12)
@@ -217,6 +288,38 @@ class Root(Tk):
         plt.close('all')
         self.destroy()
 
+    def mywritefileEstSV(self, t, sg, tmce, smceg, sds, sd1, plt, sitecl):
+        sitetitle = str(self.entry_Title.get())
+        riskct = str(self.SelectedRiskCategory.get())
+        address = str(self.entry_Address.get())
+        lat = str(self.entry_Latitude.get())
+        longt= str(self.entry_Longitude.get())
+        with open('ASCE722.txt', 'w') as f:
+            f.write("Data source is USGS (ASCE 722 Database) and OpenStreetMaps.\nAuthors do not assume any responsibility or liability for its accuracy.\n")
+            f.write("Use of the output of this program does not imply approval by the governing building code bodies responsible for building code approval and interpretation for the building site described by latitude/longitude location.\n")
+            f.write("Written by HXB\n \n \n")
+            f.write(sitetitle + "\n" + address + "\n")
+            f.write("The location is " + lat + ", " + longt +  " and Risk Category "+ riskct + "\n")
+            f.write("Site Class based on an estimated shear wave velocity of " + str(self.entry_SWVel.get()) + "ft/s\n")
+            f.write("Lower bound and upper bound site class considered in computation " + "\n")
+            f.write("sds from governing design spectra = " + str(round(sds, 3)) + "\n")
+            f.write("sd1 from governing design spectra = " + str(round(sd1, 3)) + "\n")
+            f.write("Governing MultiPeriodDesignSpectrum\n")
+            index = len(t)
+            j = 0
+            while j < index:
+                f.write(str(t[j])+ ", " + str(sg[j])+"\n")
+                j+= 1
+            f.write("Governing MultiPeriodMCErSpectrum\n")
+            index = len(tmce)
+            j = 0
+            while j < index:
+                f.write(str(tmce[j])+ ", " + str(smceg[j])+"\n")
+                j+= 1
+        plt.savefig('spectra.png')
+        messagebox.showinfo("Completed", "Wrote file ASCE722.txt and spectra.png")
+
+
     def mywritefile(self, ldata, plt, sitecl):
         sitetitle = str(self.entry_Title.get())
         riskct = str(self.SelectedRiskCategory.get())
@@ -230,7 +333,7 @@ class Root(Tk):
         tmce = ldata["response"]["data"]["multiPeriodMCErSpectrum"]["periods"]
         smce = ldata["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
         with open('ASCE722.txt', 'w') as f:
-            f.write("Data source is USGS (NEHRP 2020 Database) and OpenStreetMaps.\nAuthors do not assume any responsibility or liability for its accuracy.\n")
+            f.write("Data source is USGS (ASCE 722 Database) and OpenStreetMaps.\nAuthors do not assume any responsibility or liability for its accuracy.\n")
             f.write("Use of the output of this program does not imply approval by the governing building code bodies responsible for building code approval and interpretation for the building site described by latitude/longitude location.\n")
             f.write("Written by HXB\n \n \n")
             f.write(sitetitle + "\n" + address + "\n")
@@ -255,6 +358,7 @@ class Root(Tk):
                 f.write(str(tmce[j])+ ", " + str(smce[j])+"\n")
                 j+= 1
         plt.savefig('spectra.png')
+        messagebox.showinfo("Completed", "Wrote file ASCE722.txt and spectra.png")
 
 
     def about(self):
@@ -264,7 +368,7 @@ Use of the output of this program does not imply approval by the governing build
 approval and interpretation for the building site described by latitude/longitude location.\n \n\
 Written by HXB')
 
-
+rr=0
 root = Root()
 root.mainloop()
 
