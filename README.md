@@ -8,3 +8,5 @@ approval and interpretation for the building site described by latitude/longitud
 Written by HXB
 
 Accepts both late long pair or an address.
+
+2/17/2024  Accepts an estimated shear wave velocity and computes the governing spectra based an upper bound, lower bound and estimated site class.  Extensive revisions to code to write the governing spectra to file. 
