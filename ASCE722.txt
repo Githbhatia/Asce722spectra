@@ -4,56 +4,58 @@ Use of the output of this program does not imply approval by the governing build
 Written by HXB
  
  
-My Site
+UCSF Parnassus
 University of California Medical Center, 505, Parnassus Avenue, San Francisco, California, 94143, United States
 The location is 37.76307, -122.45740267680621 and Risk Category IV
-Site Class based on an estimated shear wave velocity of 900ft/s
-Lower bound and upper bound site class considered in computation 
+Site Class based on an estimated shear wave velocity of 1200ft/s
+Lower bound and upper bound site class considered in computation per ASCE 7-22 Section 20.3 and 21.4
+sms from governing design spectra = 2.052
+sm1 from governing design spectra = 2.025
 sds from governing design spectra = 1.368
-sd1 from governing design spectra = 1.16
+sd1 from governing design spectra = 1.35
 Governing MultiPeriodDesignSpectrum
 0, 0.58
 0.01, 0.58
 0.02, 0.58
 0.03, 0.61
-0.05, 0.7
-0.075, 0.86
-0.1, 0.98
-0.15, 1.17
-0.2, 1.34
+0.05, 0.76
+0.075, 0.96
+0.1, 1.1
+0.15, 1.28
+0.2, 1.43
 0.25, 1.46
 0.3, 1.52
 0.4, 1.49
 0.5, 1.43
 0.75, 1.24
-1, 1.16
-1.5, 1.01
-2, 0.91
-3, 0.69
-4, 0.53
-5, 0.41
-7.5, 0.22
-10, 0.13
+1, 1.08
+1.5, 0.82
+2, 0.67
+3, 0.49
+4, 0.38
+5, 0.3
+7.5, 0.17
+10, 0.1
 Governing MultiPeriodMCErSpectrum
 0, 0.87
 0.01, 0.87
 0.02, 0.87
-0.03, 0.91
-0.05, 1.05
-0.075, 1.29
-0.1, 1.48
-0.15, 1.76
-0.2, 2.01
+0.03, 0.92
+0.05, 1.14
+0.075, 1.44
+0.1, 1.64
+0.15, 1.93
+0.2, 2.14
 0.25, 2.19
 0.3, 2.29
 0.4, 2.24
 0.5, 2.14
 0.75, 1.86
-1, 1.74
-1.5, 1.51
-2, 1.36
-3, 1.03
-4, 0.79
-5, 0.61
-7.5, 0.33
-10, 0.2
+1, 1.62
+1.5, 1.23
+2, 1.01
+3, 0.74
+4, 0.58
+5, 0.45
+7.5, 0.25
+10, 0.16

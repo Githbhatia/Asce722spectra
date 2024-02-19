@@ -222,6 +222,7 @@ class Root(Tk):
             ax.plot(t, sg, label="Govering Multiperiod Des Spec", color='Black', linestyle='--', linewidth=2.0)
             ax.set_xlim([0, 5])
             ax.legend()  
+            ax.grid()
             smcel = rdatal["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
             smceu = rdatau["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
             smceg = [max(smcel,smce,smceu) for smcel,smce,smceu in zip(smcel,smce,smceu)]
@@ -231,19 +232,20 @@ class Root(Tk):
             ax2.plot(tmce, smceg, label="Govering MCE Multiperiod", color='Black', linestyle='--', linewidth=2.0)
             ax2.set_xlim([0, 5])
             ax2.legend() 
+            ax2.grid()
             rr+=1
             self.title_label = Label(text="ASCE7-22 Seismic Parameter Output").grid(row=rr,column=0, columnspan = 2); rr+=1
             self.title_label2 = Label(text="Based on est. shear wave velocity per ASCE 7-22 Section 20.3 and 21.4").grid(row=rr,column=0, columnspan = 2); rr+=1
             sds = 0.9 * max(sg[t.index(0.2):t.index(5.0)])
             sd1min = sg[t.index(1.0)]
             sd1 = 0.0
-            if shearwavevel < 1450:
+            if shearwavevel > 1450:
                 for i in range(t.index(1.0), t.index(2.0)+1):
-                    sd1 = max(sg[i]*t[i], sd1)
+                    sd1 = 0.9*max(sg[i]*t[i], sd1)
                 sd1=max(sd1,sd1min)
-            elif shearwavevel >= 1450:
+            elif shearwavevel <= 1450:
                 for i in range(t.index(1.0), t.index(5.0)+1):
-                    sd1 = max(sg[i]*t[i], sd1)
+                    sd1 = 0.9*max(sg[i]*t[i], sd1)
                 sd1=max(sd1,sd1min)
             Label(self, text=str("sms"), relief = "sunken", width= 20).grid(column=0, row=rr)
             Label(self, text=str(round(sds*1.5,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
