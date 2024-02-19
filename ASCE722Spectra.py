@@ -241,11 +241,11 @@ class Root(Tk):
             sd1 = 0.0
             if shearwavevel > 1450:
                 for i in range(t.index(1.0), t.index(2.0)+1):
-                    sd1 = 0.9*max(sg[i]*t[i], sd1)
+                    sd1 = max(0.9*sg[i]*t[i], sd1)
                 sd1=max(sd1,sd1min)
             elif shearwavevel <= 1450:
                 for i in range(t.index(1.0), t.index(5.0)+1):
-                    sd1 = 0.9*max(sg[i]*t[i], sd1)
+                    sd1 = max(0.9*sg[i]*t[i], sd1)
                 sd1=max(sd1,sd1min)
             Label(self, text=str("sms"), relief = "sunken", width= 20).grid(column=0, row=rr)
             Label(self, text=str(round(sds*1.5,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1

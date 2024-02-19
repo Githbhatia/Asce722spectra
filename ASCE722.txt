@@ -10,9 +10,9 @@ The location is 37.76307, -122.45740267680621 and Risk Category IV
 Site Class based on an estimated shear wave velocity of 1200ft/s
 Lower bound and upper bound site class considered in computation per ASCE 7-22 Section 20.3 and 21.4
 sms from governing design spectra = 2.052
-sm1 from governing design spectra = 2.025
+sm1 from governing design spectra = 2.052
 sds from governing design spectra = 1.368
-sd1 from governing design spectra = 1.35
+sd1 from governing design spectra = 1.368
 Governing MultiPeriodDesignSpectrum
 0, 0.58
 0.01, 0.58
