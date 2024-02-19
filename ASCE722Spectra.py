@@ -5,9 +5,7 @@ import ssl
 import geopy.geocoders
 from geopy.geocoders import Nominatim
 import urllib.request as ur
-import urllib.error
 import json as js
-import numpy as np
 import matplotlib.pyplot as plt
 #import folium
 import webbrowser
@@ -235,13 +233,26 @@ class Root(Tk):
             ax2.legend() 
             rr+=1
             self.title_label = Label(text="ASCE7-22 Seismic Parameter Output").grid(row=rr,column=0, columnspan = 2); rr+=1
-            self.title_label2 = Label(text="Based on estimated shear wave velocity").grid(row=rr,column=0, columnspan = 2); rr+=1
-            sds = 0.9 * max(sg)
-            sd1 = sg[t.index(1.0)]
+            self.title_label2 = Label(text="Based on est. shear wave velocity per ASCE 7-22 Section 20.3 and 21.4").grid(row=rr,column=0, columnspan = 2); rr+=1
+            sds = 0.9 * max(sg[t.index(0.2):t.index(5.0)])
+            sd1min = sg[t.index(1.0)]
+            sd1 = 0.0
+            if shearwavevel < 1450:
+                for i in range(t.index(1.0), t.index(2.0)+1):
+                    sd1 = max(sg[i]*t[i], sd1)
+                sd1=max(sd1,sd1min)
+            elif shearwavevel >= 1450:
+                for i in range(t.index(1.0), t.index(5.0)+1):
+                    sd1 = max(sg[i]*t[i], sd1)
+                sd1=max(sd1,sd1min)
+            Label(self, text=str("sms"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(sds*1.5,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            Label(self, text=str("sm1"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(sd1*1.5,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
             Label(self, text=str("sds"), relief = "sunken", width= 20).grid(column=0, row=rr)
             Label(self, text=str(round(sds,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
             Label(self, text=str("sd1"), relief = "sunken", width= 20).grid(column=0, row=rr)
-            Label(self, text=str(sd1), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            Label(self, text=str(round(sd1,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
             self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefileEstSV(t, sg, tmce, smceg, sds, sd1, plt, sitecl)).grid(row=rr,column=0)
             
 
@@ -301,7 +312,9 @@ class Root(Tk):
             f.write(sitetitle + "\n" + address + "\n")
             f.write("The location is " + lat + ", " + longt +  " and Risk Category "+ riskct + "\n")
             f.write("Site Class based on an estimated shear wave velocity of " + str(self.entry_SWVel.get()) + "ft/s\n")
-            f.write("Lower bound and upper bound site class considered in computation " + "\n")
+            f.write("Lower bound and upper bound site class considered in computation per ASCE 7-22 Section 20.3 and 21.4" + "\n")
+            f.write("sms from governing design spectra = " + str(round(sds*1.5, 3)) + "\n")
+            f.write("sm1 from governing design spectra = " + str(round(sd1*1.5, 3)) + "\n")
             f.write("sds from governing design spectra = " + str(round(sds, 3)) + "\n")
             f.write("sd1 from governing design spectra = " + str(round(sd1, 3)) + "\n")
             f.write("Governing MultiPeriodDesignSpectrum\n")
