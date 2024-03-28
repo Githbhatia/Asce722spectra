@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
+from tkinter import ttk
+import numpy as np
 import certifi
 import ssl
 import geopy.geocoders
@@ -10,20 +12,20 @@ import matplotlib.pyplot as plt
 #import folium
 import webbrowser
 
+
 class Root(Tk):
     def __init__(self):
         super().__init__()
         global rr
-        self.geometry('370x340')
+        self.geometry('370x385')
         self.title("ASCE 7-22 Seismic Parameters")
         
         self.menubar = Menu()
         self.menubar.add_command(label="Quit", command=self.quit)
-
         self.help = Menu(self.menubar, tearoff=0)  
         self.help.add_command(label="About", command=self.about)  
         self.menubar.add_cascade(label="Help", menu=self.help)
-        
+
         rr=0
         self.config(menu =self.menubar)
         self.grid_columnconfigure(1, minsize=200)
@@ -85,10 +87,18 @@ class Root(Tk):
         self.checkbutton_OpenMap=Checkbutton(self, text="Open Map", variable=self.OpenMap)
         self.checkbutton_OpenMap.grid(row=rr,column=1,sticky="ew"); rr+=1
 
+        self.locVariation=IntVar()
+        self.checkbutton_locVariation=Checkbutton(self, text="Check Local Variation of SDS and SD1", variable=self.locVariation)
+        self.checkbutton_locVariation.grid(row=rr,column=0,columnspan = 2); rr+=1
+
+        self.progress = ttk.Progressbar(self,orient='horizontal',mode="indeterminate", length= 200)
+        self.progress.grid(row=rr,column=0,columnspan = 2); rr+=1
+
         self.button = Button( text="Compute", bg='white', height=2, width=20, command=self.onclick).grid(row=rr,column=0)
 
         
     def onclick(self):
+        self.progress.start()
         global rr
         rr=22
         if str(self.entry_SWVel.get()) != "":
@@ -174,7 +184,7 @@ class Root(Tk):
                 print('Error code: ', e.code)
                 return()
 
-        self.geometry('370x660')     
+        self.geometry('370x720')     
         rdata = js.loads(response.read())
         if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
             rdatal = js.loads(responsel.read())
@@ -255,6 +265,8 @@ class Root(Tk):
             Label(self, text=str(round(sds,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
             Label(self, text=str("sd1"), relief = "sunken", width= 20).grid(column=0, row=rr)
             Label(self, text=str(round(sd1,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            Label(self, text=str("pga"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(sg[0],3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
             self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefileEstSV(t, sg, tmce, smceg, sds, sd1, plt, sitecl)).grid(row=rr,column=0)
             
 
@@ -273,6 +285,8 @@ class Root(Tk):
             p = rdata["response"]["data"]; rr+=1
             self.title_label = Label(text="ASCE7-22 Seismic Parameter Output").grid(row=rr,column=0, columnspan = 2); rr+=1
             index = 0
+            Label(self, text=str("pga"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(s[0],3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
             for key, value in p.items():
                 if index <= 11:
                     Label(self, text=str(key), relief = "sunken", width= 20).grid(column=0, row=rr)
@@ -292,12 +306,62 @@ class Root(Tk):
  #           map.save("mymap.html")
  #           webbrowser.open("mymap.html")
             webbrowser.open('http://www.google.com/maps/place/'+ lat +','+longt+'/@'+ lat +','+longt+',12z', new=2)
+        if self.locVariation.get()==1:
+            self.contourf(lat, longt, riskct, sitecl)
+        plt.show()
+
+    def contourf(self, lat, longt, riskct,sitecl):
+        messagebox.showinfo("ASCE7-22 Local Variation","Computed for selected site class only,\n Will take some time depending on latency of USGS website\n Select Ok to start")
+        self.after(50, self.update)
+        nlong = 7
+        nlat= 7
+        gridspacing = 0.5/60.0
+        lat = float(lat)
+        longt = float(longt)
+        latgrid = np.arange(lat+(nlat//2)*gridspacing, lat-((nlat//2)+0.9)*gridspacing, -gridspacing)
+        longgrid = np.arange(longt-(nlong//2)*gridspacing, longt+((nlong//2)+0.9)*gridspacing, gridspacing)
+        xLong,xLat = np.meshgrid(longgrid,latgrid)
+        ZSDS=np.zeros((nlong,nlat)); ZSD1=np.zeros((nlong,nlat))
+        for i in range(nlong):
+            for j in range(nlat):
+                url = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ str(xLat[i,j]) + '&longitude=' + str(xLong[i,j]) +'&riskCategory='+ riskct +'&siteClass=' + sitecl + '&title=Example'
+                try:
+                    response = ur.urlopen(url)
+   
+                except ur.URLError as e:
+                    if hasattr(e, 'reason'):
+                        print('We failed to reach a server.')
+                        print('Reason: ', e.reason)
+                        return()
+                    elif hasattr(e, 'code'):
+                        print('The server couldn\'t fulfill the request.')
+                        print('Error code: ', e.code)
+                        return() 
+                rdata = js.loads(response.read())
+                ZSDS[i,j] = rdata["response"]["data"]["sds"]
+                ZSD1[i,j] = rdata["response"]["data"]["sd1"]
+
+        #print(ZSDS, ZSD1)
+        fig = plt.figure(figsize=(20, 10))
+        ax = fig.add_subplot(121)
+        CS = ax.contour(xLong,xLat,ZSDS) 
+        ax.set_title('Local Variation of SDS around site')
+        ax.text(longt,lat , '. Site '+ str(ZSDS[nlong//2, nlat//2]), fontsize = 10)
+        ax.clabel(CS, inline=True, fontsize=10)
+        ax = fig.add_subplot(122)
+        CS2 = ax.contour(xLong,xLat,ZSD1) 
+        ax.set_title('Variation of SD1 around site')
+        ax.text(longt, lat, '. Site '+ str(ZSD1[nlong//2, nlat//2]), fontsize = 10)
+        ax.clabel(CS2, inline=True, fontsize=10)
+
         plt.show()
 
     def quit(self):
+        self.progress.stop()
         self.destroy()
         
     def onclick2(self, plt):
+        self.progress.stop()
         plt.close('all')
         self.destroy()
 
@@ -319,6 +383,7 @@ class Root(Tk):
             f.write("sm1 from governing design spectra = " + str(round(sd1*1.5, 3)) + "\n")
             f.write("sds from governing design spectra = " + str(round(sds, 3)) + "\n")
             f.write("sd1 from governing design spectra = " + str(round(sd1, 3)) + "\n")
+            f.write("pga from governing design spectra = " + str(round(sg[0], 3)) + "\n")
             f.write("Governing MultiPeriodDesignSpectrum\n")
             index = len(t)
             j = 0
@@ -355,6 +420,7 @@ class Root(Tk):
             f.write("The location is " + lat + ", " + longt + " with Site Class " + sitecl + " and Risk Category "+ riskct + "\n")
             if str(self.entry_SWVel.get()) != "":
                 f.write("Site Class based on a shear wave velocity of " + str(self.entry_SWVel.get()) + "ft/s\n")
+            f.write("pga from design spectra = " + str(round(s[0], 3)) + "\n")
             for key, value in p.items():
                 if index <= 11:
                     f.write(str(key)+ ", " + str(value)+"\n")     
