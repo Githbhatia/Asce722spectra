@@ -11,3 +11,4 @@ Accepts both late long pair or an address.
 
 2/17/2024  Accepts an estimated shear wave velocity and computes the governing spectra based an upper bound, lower bound and estimated site class.  Extensive revisions to code to write the governing spectra to file. 
 2/18/2024  Revised to compute sds and sd1 per ASCE 7-22 Section 21.4 where the shear wave velocity is estimated.
+3/27/2024  Added option to lookup local variation of SDS and SD1 around site.
