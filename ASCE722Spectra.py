@@ -16,6 +16,7 @@ import webbrowser
 class Root(Tk):
     def __init__(self):
         super().__init__()
+        #print(certifi.where())
         global rr
         self.geometry('370x385')
         self.title("ASCE 7-22 Seismic Parameters")
@@ -48,7 +49,7 @@ class Root(Tk):
         self.checkbutton_estSWVel=Checkbutton(self, text="Estimated Shear Wave Velocity?", variable=self.estSWVel)
         self.checkbutton_estSWVel.grid(row=rr,column=0, columnspan = 2,sticky="ew"); rr+=1
 
-        SiteClassList=["A","B","BC","C","CD","D","DE","E","F"]
+        SiteClassList=["A","B","BC","C","CD","D","DE","E", "Default"]
         self.SelectedSiteClass=StringVar()
         self.SelectedSiteClass.set("CD")
         self.label_SiteClass = Label(text="Site Class").grid(row=rr,column=0)
@@ -111,11 +112,26 @@ class Root(Tk):
                 messagebox.showinfo("Invalid Shear Wave Velocity", "Enter a non-zero shear wave velocity in ft/sec and try again")
                 return
             shearwavevellimits = [('F',0.0),('E',500.0),('DE',700.0),('D',1000.0),('CD',1450.0),('C',2100.0),('BC',3000.0),('B',5000.0),('A',1000000.0)]
+            centershearwave = [('E',500.0),('DE',600.0),('D',849.0),('CD',1200.0),('C',1732.0),('BC',2500.0),('B',3536.0),('A',1000000.0)]
             index = 0
             for a, b in shearwavevellimits:
                 if shearwavevel <= b:
                     sitecl = a
                     break
+            prev =0
+            for a, b in centershearwave:
+                if shearwavevel > b:
+                    sitecll = a
+                    prev = b
+            if shearwavevel <= 500.0:
+                sitecll = "E"
+                    
+            for a, b in centershearwave:
+                if shearwavevel <= b:
+                    siteclu = a
+                    siteclBMultp = (shearwavevel - prev)/(b- prev)
+                    break
+                    
             if self.estSWVel.get()==1:
                 for a, b in shearwavevellimits:
                     if shearwavevel/1.3 <= b:
@@ -124,16 +140,27 @@ class Root(Tk):
                 for a, b in shearwavevellimits:
                     if shearwavevel*1.3 <= b:
                         siteclu = a
-                        break     
-                #print(sitecll+" "+siteclu)
+                        break
+            self.SelectedSiteClass.set(sitecl)     
+        elif str(self.SelectedSiteClass.get())=="Default":
+            sitecl = "CD"
+            siteclu = "C"
+            sitecll = "D"
         else:
             sitecl = str(self.SelectedSiteClass.get())
-        self.SelectedSiteClass.set(sitecl)
+        if sitecl == 'F': 
+            messagebox.showinfo("Invalid Shear Wave Velocity", "Site Class F, Requires site response analysis studies")
+            return
+        
+        #print(sitecll+" "+siteclu)
+        #print(siteclBMultp)
 
         
-        ctx = ssl._create_unverified_context(cafile=certifi.where())
+        ctx = ssl.create_default_context(cafile=certifi.where())
+        print(certifi.where())
+        #ctx = ssl._create_unverified_context()
         geopy.geocoders.options.default_ssl_context = ctx
-        geolocator = Nominatim(user_agent="ASCE722MultiPeriodResponseSpectra", scheme='https')
+        geolocator = Nominatim(user_agent="ASCE722Spectra", scheme='https')
         sitetitle = str(self.entry_Title.get())
         riskct = str(self.SelectedRiskCategory.get())
         address = str(self.entry_Address.get())
@@ -165,13 +192,15 @@ class Root(Tk):
         #print((location.latitude, location.longitude))
 
         url = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ lat + '&longitude=' + longt +'&riskCategory='+ riskct +'&siteClass=' + sitecl + '&title=Example'
-        if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+       
+        if  str(self.entry_SWVel.get()) != "" or str(self.SelectedSiteClass.get())=="Default":
             urll = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ lat + '&longitude=' + longt +'&riskCategory='+ riskct +'&siteClass=' + sitecll + '&title=Example'
             urlu = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ lat + '&longitude=' + longt +'&riskCategory='+ riskct +'&siteClass=' + siteclu + '&title=Example'
+            
 
         try:
             response = ur.urlopen(url)
-            if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+            if str(self.entry_SWVel.get()) != "" or str(self.SelectedSiteClass.get())=="Default":
                 responsel = ur.urlopen(urll)
                 responseu = ur.urlopen(urlu)
         except ur.URLError as e:
@@ -185,14 +214,16 @@ class Root(Tk):
                 return()
 
         self.geometry('370x720')     
+
         rdata = js.loads(response.read())
-        if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+        if str(self.entry_SWVel.get()) != "" or str(self.SelectedSiteClass.get())=="Default":           
             rdatal = js.loads(responsel.read())
             rdatau = js.loads(responseu.read())
+
         if self.SaveJson.get() == 1:
             with open("ASCE722.json", "w") as write_file:
                 js.dump(rdata, write_file)
-            if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+            if str(self.entry_SWVel.get()) != "" or str(self.SelectedSiteClass.get())=="Default":
                 with open("ASCE722_lowerbound.json", "w") as write_file:
                     js.dump(rdatal, write_file)
                 with open("ASCE722_upperbound.json", "w") as write_file:
@@ -208,8 +239,23 @@ class Root(Tk):
         tmce = rdata["response"]["data"]["multiPeriodMCErSpectrum"]["periods"]
         smce = rdata["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
 
+
+
         tmce2 = rdata["response"]["data"]["twoPeriodMCErSpectrum"]["periods"]
         smce2 = rdata["response"]["data"]["twoPeriodMCErSpectrum"]["ordinates"]
+
+        if str(self.entry_SWVel.get()) != "" or str(self.SelectedSiteClass.get())=="Default":    
+            tl = rdatal["response"]["data"]["multiPeriodDesignSpectrum"]["periods"]
+            sl = rdatal["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
+            
+            tu = rdatau["response"]["data"]["multiPeriodDesignSpectrum"]["periods"]
+            su = rdatau["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
+
+            tmcel = rdatal["response"]["data"]["multiPeriodMCErSpectrum"]["periods"]
+            smcel = rdatal["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
+
+            tmceu = rdatau["response"]["data"]["multiPeriodMCErSpectrum"]["periods"]
+            smceu = rdatau["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
 
         fig = plt.figure(figsize=(20, 10))
         ax = fig.add_subplot(121)
@@ -219,16 +265,14 @@ class Root(Tk):
         ax2.set_xlabel('Period')
         ax2.set_title(sitetitle + " MCE Spectrum")
 
-        if self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != "":
+        if (self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != ""):
             for label in self.grid_slaves():
                 if int(label.grid_info()["row"]) > 22:
                     label.grid_forget()
-            sl = rdatal["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
-            su = rdatau["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
             sg = [max(sl,s,su) for sl,s,su in zip(sl,s,su)]
-            ax.plot(t, sl, label="Multiperiod Des Spec lower bound SC="+ sitecll, color='Red', linewidth=1.0)
-            ax.plot(t, s, label="Multiperiod Des Spec SC=" + sitecl, color='Blue', linewidth=1.0)
-            ax.plot(t, su, label="Multiperiod Des Spec upper bound SC="+ siteclu, color='Green', linewidth=1.0)
+            ax.plot(t, sl, label="Multiperiod Des Spec lower bound SC= "+ sitecll, color='Red', linewidth=1.0)
+            ax.plot(t, s, label="Multiperiod Des Spec SC= " + sitecl, color='Blue', linewidth=1.0)
+            ax.plot(t, su, label="Multiperiod Des Spec upper bound SC= "+ siteclu, color='Green', linewidth=1.0)
             ax.plot(t, sg, label="Govering Multiperiod Des Spec", color='Black', linestyle='--', linewidth=2.0)
             ax.set_xlim([0, 5])
             ax.legend()  
@@ -236,9 +280,9 @@ class Root(Tk):
             smcel = rdatal["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
             smceu = rdatau["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
             smceg = [max(smcel,smce,smceu) for smcel,smce,smceu in zip(smcel,smce,smceu)]
-            ax2.plot(tmce, smcel, label="MCE Multiperiod lower bound SC="+ sitecll, color='Red', linewidth=1.0)
-            ax2.plot(tmce, smce, label="MCE Multiperiod Spec SC=" + sitecl, color='Blue', linewidth=1.0)
-            ax2.plot(tmce, smceu, label="MCE Multiperiod upper bound SC="+ siteclu, color='Green', linewidth=1.0)
+            ax2.plot(tmce, smcel, label="MCE Multiperiod lower bound SC= "+ sitecll, color='Red', linewidth=1.0)
+            ax2.plot(tmce, smce, label="MCE Multiperiod Spec SC= " + sitecl, color='Blue', linewidth=1.0)
+            ax2.plot(tmce, smceu, label="MCE Multiperiod upper bound SC= "+ siteclu, color='Green', linewidth=1.0)
             ax2.plot(tmce, smceg, label="Govering MCE Multiperiod", color='Black', linestyle='--', linewidth=2.0)
             ax2.set_xlim([0, 5])
             ax2.legend() 
@@ -268,20 +312,63 @@ class Root(Tk):
             Label(self, text=str("pga"), relief = "sunken", width= 20).grid(column=0, row=rr)
             Label(self, text=str(round(sg[0],3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
             self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefileEstSV(t, sg, tmce, smceg, sds, sd1, plt, sitecl)).grid(row=rr,column=0)
-            
-
-        else:
+        elif str(self.SelectedSiteClass.get())=="Default":   
             for label in self.grid_slaves():
                 if int(label.grid_info()["row"]) > 22:
                     label.grid_forget()
-            ax.plot(t, s, label="Multiperiod Design Spectrum", color='Red', linewidth=1.0)
-            ax.plot(t2, s2, label="2-Period Design Spectrum", color='Green', linewidth=1.0)
+            sg = [max(sl,s,su) for sl,s,su in zip(sl,s,su)]
+            ax.plot(t, sl, label="Multiperiod Des Spec lower bound SC= "+ sitecll, color='Red', linewidth=1.0)
+            ax.plot(t, s, label="Multiperiod Des Spec SC= " + sitecl, color='Blue', linewidth=1.0)
+            ax.plot(t, su, label="Multiperiod Des Spec upper bound SC= "+ siteclu, color='Green', linewidth=1.0)
+            ax.plot(t, sg, label="Govering Multiperiod Des Spec", color='Black', linestyle='--', linewidth=2.0)
+            ax.set_xlim([0, 5])
+            ax.legend()  
+            ax.grid()
+            smcel = rdatal["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
+            smceu = rdatau["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
+            smceg = [max(smcel,smce,smceu) for smcel,smce,smceu in zip(smcel,smce,smceu)]
+            ax2.plot(tmce, smcel, label="MCE Multiperiod lower bound SC= "+ sitecll, color='Red', linewidth=1.0)
+            ax2.plot(tmce, smce, label="MCE Multiperiod Spec SC= " + sitecl, color='Blue', linewidth=1.0)
+            ax2.plot(tmce, smceu, label="MCE Multiperiod upper bound SC= "+ siteclu, color='Green', linewidth=1.0)
+            ax2.plot(tmce, smceg, label="Govering MCE Multiperiod", color='Black', linestyle='--', linewidth=2.0)
+            ax2.set_xlim([0, 5])
+            ax2.legend() 
+            ax2.grid()
+            rr+=1
+            self.title_label = Label(text="ASCE7-22 Seismic Parameter Output").grid(row=rr,column=0, columnspan = 2); rr+=1
+            self.title_label2 = Label(text="Default = Max of Site Class C, CD, D").grid(row=rr,column=0, columnspan = 2); rr+=1
+            sds = 0.9 * max(sg[t.index(0.2):t.index(5.0)])
+            sd1 = sg[t.index(1.0)]
+            Label(self, text=str("sms"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(sds*1.5,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            Label(self, text=str("sm1"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(sd1*1.5,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            Label(self, text=str("sds"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(sds,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            Label(self, text=str("sd1"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(sd1,3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            Label(self, text=str("pga"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(sg[0],3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefileEstSV(t, sg, tmce, smceg, sds, sd1, plt, sitecl)).grid(row=rr,column=0)
+        elif  str(self.entry_SWVel.get()) != "":
+            sexp = np.array(su)*siteclBMultp + np.array(sl)*(1-siteclBMultp)
+            sexpmce = np.array(smceu)*siteclBMultp + np.array(smcel)*(1-siteclBMultp)
+            for label in self.grid_slaves():
+                if int(label.grid_info()["row"]) > 22:
+                    label.grid_forget()
+            ax.plot(t, s, label="Multiperiod Design Spectrum for " + sitecl, color='Red', linewidth=1.0)
+            ax.plot(t2, s2, label="2-Period Design Spectrum for " + sitecl, color='Green', linewidth=1.0)
+            #ax.plot(tl, sl, label="Lower Bound Design Spectrum for" + sitecll, color='black', linewidth=0.1)
+            ax.plot(tl, sexp, label="Interpolated Spectrum for " + str(round(shearwavevel,0)) + " ft/s", color='black', linestyle='--', linewidth=1.0)
             ax.set_xlim([0, 5])
             ax.legend()
+            ax.grid()
             ax2.plot(tmce, smce, label="MCE Multiperiod Spectrum", color='Blue', linewidth=1.0)
             ax2.plot(tmce2, smce2, label="MCE 2-Period  Spectrum", color='Green', linewidth=1.0)
+            ax2.plot(tmcel, sexpmce, label="Interpolated mCE Spectrum for " + str(round(shearwavevel,0)) + " ft/s", color='black', linestyle='--', linewidth=1.0)
             ax2.set_xlim([0, 5])
             ax2.legend()
+            ax2.grid()
             p = rdata["response"]["data"]; rr+=1
             self.title_label = Label(text="ASCE7-22 Seismic Parameter Output").grid(row=rr,column=0, columnspan = 2); rr+=1
             index = 0
@@ -292,8 +379,32 @@ class Root(Tk):
                     Label(self, text=str(key), relief = "sunken", width= 20).grid(column=0, row=rr)
                     Label(self, text=str(value), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
                 index += 1
-            self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefile(rdata, plt, sitecl)).grid(row=rr,column=0)
-            
+            self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefileest(rdata, plt, sitecl, sexp)).grid(row=rr,column=0)
+        else:
+            for label in self.grid_slaves():
+                if int(label.grid_info()["row"]) > 22:
+                    label.grid_forget()
+            ax.plot(t, s, label="Multiperiod Design Spectrum for" + sitecl, color='Red', linewidth=1.0)
+            ax.plot(t2, s2, label="2-Period Design Spectrum for" + sitecl, color='Green', linewidth=1.0)
+            ax.set_xlim([0, 5])
+            ax.legend()
+            ax.grid()
+            ax2.plot(tmce, smce, label="MCE Multiperiod Spectrum", color='Blue', linewidth=1.0)
+            ax2.plot(tmce2, smce2, label="MCE 2-Period  Spectrum", color='Green', linewidth=1.0)
+            ax2.set_xlim([0, 5])
+            ax2.legend()
+            ax2.grid()
+            p = rdata["response"]["data"]; rr+=1
+            self.title_label = Label(text="ASCE7-22 Seismic Parameter Output").grid(row=rr,column=0, columnspan = 2); rr+=1
+            index = 0
+            Label(self, text=str("pga"), relief = "sunken", width= 20).grid(column=0, row=rr)
+            Label(self, text=str(round(s[0],3)), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+            for key, value in p.items():
+                if index <= 11:
+                    Label(self, text=str(key), relief = "sunken", width= 20).grid(column=0, row=rr)
+                    Label(self, text=str(value), relief = "sunken", width = 20).grid(column=1, row=rr); rr+=1
+                index += 1
+            self.button3 = Button(self, text="Write File", bg='green', height=2, width=20,command= lambda:self.mywritefile(rdata, plt, sitecl)).grid(row=rr,column=0)            
   
 
 
@@ -322,6 +433,9 @@ class Root(Tk):
         longgrid = np.arange(longt-(nlong//2)*gridspacing, longt+((nlong//2)+0.9)*gridspacing, gridspacing)
         xLong,xLat = np.meshgrid(longgrid,latgrid)
         ZSDS=np.zeros((nlong,nlat)); ZSD1=np.zeros((nlong,nlat))
+        #mapLayer = folium.Map(location=[lat,longt],min_lat=lat-((nlat//2))*gridspacing, max_lat=lat+(nlat//2)*gridspacing, min_lon=longt-(nlong//2)*gridspacing, max_lon=longt+((nlong//2))*gridspacing)
+        #mapLayer.save("map.jpg")
+
         for i in range(nlong):
             for j in range(nlat):
                 url = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ str(xLat[i,j]) + '&longitude=' + str(xLong[i,j]) +'&riskCategory='+ riskct +'&siteClass=' + sitecl + '&title=Example'
@@ -377,8 +491,11 @@ class Root(Tk):
             f.write("Written by HXB\n \n \n")
             f.write(sitetitle + "\n" + address + "\n")
             f.write("The location is " + lat + ", " + longt +  " and Risk Category "+ riskct + "\n")
-            f.write("Site Class based on an estimated shear wave velocity of " + str(self.entry_SWVel.get()) + "ft/s\n")
-            f.write("Lower bound and upper bound site class considered in computation per ASCE 7-22 Section 20.3 and 21.4" + "\n")
+            if (self.estSWVel.get()==1 and str(self.entry_SWVel.get()) != ""):
+                f.write("Site Class based on an estimated shear wave velocity of " + str(self.entry_SWVel.get()) + "ft/s\n")
+                f.write("Lower bound and upper bound site class considered in computation per ASCE 7-22 Section 20.3 and 21.4" + "\n")
+            else:
+                f.write("Default Site Class based on max of Site Class C, CD, D\n")
             f.write("sms from governing design spectra = " + str(round(sds*1.5, 3)) + "\n")
             f.write("sm1 from governing design spectra = " + str(round(sd1*1.5, 3)) + "\n")
             f.write("sds from governing design spectra = " + str(round(sds, 3)) + "\n")
@@ -398,6 +515,7 @@ class Root(Tk):
                 j+= 1
         plt.savefig('spectra.png')
         messagebox.showinfo("Completed", "Wrote file ASCE722.txt and spectra.png")
+
 
 
     def mywritefile(self, ldata, plt, sitecl):
@@ -441,6 +559,54 @@ class Root(Tk):
         plt.savefig('spectra.png')
         messagebox.showinfo("Completed", "Wrote file ASCE722.txt and spectra.png")
 
+
+    def mywritefileest(self, ldata, plt, sitecl, sexp):
+        sitetitle = str(self.entry_Title.get())
+        riskct = str(self.SelectedRiskCategory.get())
+        address = str(self.entry_Address.get())
+        lat = str(self.entry_Latitude.get())
+        longt= str(self.entry_Longitude.get())
+        index = 0
+        p = ldata["response"]["data"]
+        t = ldata["response"]["data"]["multiPeriodDesignSpectrum"]["periods"]
+        s = ldata["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
+        tmce = ldata["response"]["data"]["multiPeriodMCErSpectrum"]["periods"]
+        smce = ldata["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
+        with open('ASCE722.txt', 'w') as f:
+            f.write("Data source is USGS (ASCE 722 Database) and OpenStreetMaps.\nAuthors do not assume any responsibility or liability for its accuracy.\n")
+            f.write("Use of the output of this program does not imply approval by the governing building code bodies responsible for building code approval and interpretation for the building site described by latitude/longitude location.\n")
+            f.write("Written by HXB\n \n \n")
+            f.write(sitetitle + "\n" + address + "\n")
+            f.write("The location is " + lat + ", " + longt + " with Site Class " + sitecl + " and Risk Category "+ riskct + "\n")
+            if str(self.entry_SWVel.get()) != "":
+                f.write("Site Class based on a shear wave velocity of " + str(self.entry_SWVel.get()) + "ft/s\n")
+            f.write("pga from design spectra = " + str(round(s[0], 3)) + "\n")
+            for key, value in p.items():
+                if index <= 11:
+                    f.write(str(key)+ ", " + str(value)+"\n")     
+                index += 1
+            
+            f.write("MultiPeriodDesignSpectrum\n")
+            index = len(t)
+            j = 0
+            while j < index:
+                f.write(str(t[j])+ ", " + str(s[j])+"\n")
+                j+= 1
+
+            f.write("Interpolated MultiPeriodDesignSpectrum\n")
+            index = len(t)
+            j = 0
+            while j < index:
+                f.write(str(t[j])+ ", " + str(sexp[j])+"\n")
+                j+= 1
+            f.write("MultiPeriodMCErSpectrum\n")
+            index = len(tmce)
+            j = 0
+            while j < index:
+                f.write(str(tmce[j])+ ", " + str(smce[j])+"\n")
+                j+= 1
+        plt.savefig('spectra.png')
+        messagebox.showinfo("Completed", "Wrote file ASCE722.txt and spectra.png")
 
     def about(self):
         messagebox.showinfo('ASCE722', 'Get the Multi-period response spectrum for a site for use with ASCE 7-22.\n\nFree to use.\n\
